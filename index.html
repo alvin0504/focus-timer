@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>專注小幫手 - Focus & Study Timer</title>
+    <style>
+        :root {
+            --bg-color: #f4f1ea;
+            --card-bg: #ffffff;
+            --primary-color: #7d9d8f;
+            --primary-hover: #638274;
+            --accent-color: #d98a6c;
+            --text-main: #4a4a4a;
+            --text-muted: #8c8c8c;
+            --border-color: #e2ddd5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .app-container {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 480px;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: var(--text-main);
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .mode-switch {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            background-color: var(--bg-color);
+            padding: 6px;
+            border-radius: 12px;
+        }
+
+        .mode-btn {
+            border: none;
+            background: transparent;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+
+        .mode-btn.active {
+            background-color: var(--card-bg);
+            color: var(--primary-color);
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .timer-display {
+            font-size: 4.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin: 15px 0;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 2px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            border: none;
+            padding: 12px 28px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--border-color);
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 25px 0;
+        }
+
+        .task-section {
+            text-align: left;
+        }
+
+        .task-section h2 {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            color: var(--text-main);
+        }
+
+        .task-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .task-input-group input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            outline: none;
+            font-size: 0.95rem;
+        }
+
+        .task-input-group input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .task-list {
+            list-style: none;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background-color: var(--bg-color);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .task-item.completed span {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        .task-item label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            word-break: break-all;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--accent-color);
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <h1>📖 專注小幫手</h1>
+
+    <div class="mode-switch">
+        <button class="mode-btn active" onclick="setMode('focus')">專注 (25m)</button>
+        <button class="mode-btn" onclick="setMode('shortBreak')">短休 (5m)</button>
+        <button class="mode-btn" onclick="setMode('longBreak')">長休 (15m)</button>
+    </div>
+
+    <div class="timer-display" id="timer">25:00</div>
+
+    <div class="controls">
+        <button class="btn btn-primary" id="startBtn" onclick="toggleTimer()">開始專注</button>
+        <button class="btn btn-secondary" onclick="resetTimer()">重置</button>
+    </div>
+
+    <hr>
+
+    <div class="task-section">
+        <h2>📝 今日讀書清單</h2>
+        <div class="task-input-group">
+            <input type="text" id="taskInput" placeholder="輸入要讀的科目或章節..." onkeypress="handleKeyPress(event)">
+            <button class="btn btn-primary" style="padding: 10px 16px;" onclick="addTask()">新增</button>
+        </div>
+        <ul class="task-list" id="taskList"></ul>
+    </div>
+</div>
+
+<script>
+    let timerInterval = null;
+    let totalSeconds = 25 * 60;
+    let isRunning = false;
+    let currentMode = 'focus';
+
+    const modes = {
+        focus: 25 * 60,
+        shortBreak: 5 * 60,
+        longBreak: 15 * 60
+    };
+
+    const timerDisplay = document.getElementById('timer');
+    const startBtn = document.getElementById('startBtn');
+    const modeBtns = document.querySelectorAll('.mode-btn');
+
+    function updateDisplay() {
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    function setMode(mode) {
+        clearInterval(timerInterval);
+        isRunning = false;
+        currentMode = mode;
+        totalSeconds = modes[mode];
+        startBtn.textContent = '開始';
+
+        modeBtns.forEach(btn => btn.classList.remove('active'));
+        if (mode === 'focus') modeBtns[0].classList.add('active');
+        if (mode === 'shortBreak') modeBtns[1].classList.add('active');
+        if (mode === 'longBreak') modeBtns[2].classList.add('active');
+
+        updateDisplay();
+    }
+
+    function toggleTimer() {
+        if (isRunning) {
+            clearInterval(timerInterval);
+            isRunning = false;
+            startBtn.textContent = '繼續';
+        } else {
+            isRunning = true;
+            startBtn.textContent = '暫停';
+            timerInterval = setInterval(() => {
+                if (totalSeconds > 0) {
+                    totalSeconds--;
+                    updateDisplay();
+                } else {
+                    clearInterval(timerInterval);
+                    isRunning = false;
+                    alert('🎉 時間到！辛苦了，休息一下吧！');
+                    resetTimer();
+                }
+            }, 1000);
+        }
+    }
+
+    function resetTimer() {
+        clearInterval(timerInterval);
+        isRunning = false;
+        totalSeconds = modes[currentMode];
+        startBtn.textContent = '開始';
+        updateDisplay();
+    }
+
+    function addTask() {
+        const input = document.getElementById('taskInput');
+        const text = input.value.trim();
+        if (text === '') return;
+
+        const ul = document.getElementById('taskList');
+        const li = document.createElement('li');
+        li.className = 'task-item';
+
+        li.innerHTML = `
+            <label>
+                <input type="checkbox" onchange="toggleTask(this)">
+                <span>${text}</span>
+            </label>
+            <button class="delete-btn" onclick="deleteTask(this)">刪除</button>
+        `;
+
+        ul.appendChild(li);
+        input.value = '';
+    }
+
+    function handleKeyPress(e) {
+        if (e.key === 'Enter') addTask();
+    }
+
+    function toggleTask(checkbox) {
+        const item = checkbox.closest('.task-item');
+        if (checkbox.checked) {
+            item.classList.add('completed');
+        } else {
+            item.classList.remove('completed');
+        }
+    }
+
+    function deleteTask(btn) {
+        btn.closest('.task-item').remove();
+    }
+
+    updateDisplay();
+</script>
+
+</body>
+</html>
